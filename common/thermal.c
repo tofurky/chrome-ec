@@ -23,6 +23,12 @@
 #define CPUTS(outstr) cputs(CC_THERMAL, outstr)
 #define CPRINTS(format, args...) cprints(CC_THERMAL, format, ## args)
 
+#ifdef BOARD_PUFF
+#define FAN_OFF_HYSTERESIS 3
+#else
+#define FAN_OFF_HYSTERESIS 0
+#endif
+
 /*****************************************************************************/
 /* EC-specific thermal controls */
 
@@ -58,6 +64,7 @@ static void thermal_control(void)
 	int num_sensors_read;
 	int fmax;
 	int temp_fan_configured;
+	static int fan_on;
 
 #ifdef CONFIG_CUSTOM_FAN_CONTROL
 	int temp[TEMP_SENSOR_COUNT];
@@ -107,7 +114,12 @@ static void thermal_control(void)
 		/* figure out the max fan needed, too */
 		if (thermal_params[i].temp_fan_off &&
 		    thermal_params[i].temp_fan_max) {
-			f = thermal_fan_percent(thermal_params[i].temp_fan_off,
+			int fan_off_temp = thermal_params[i].temp_fan_off;
+
+			if (fan_on)
+				fan_off_temp -= FAN_OFF_HYSTERESIS;
+
+			f = thermal_fan_percent(fan_off_temp,
 						thermal_params[i].temp_fan_max,
 						t);
 			if (f > fmax)
@@ -183,6 +195,7 @@ static void thermal_control(void)
 	}
 
 	if (temp_fan_configured) {
+		fan_on = (fmax > 0);
 #ifdef CONFIG_FANS
 #ifdef CONFIG_CUSTOM_FAN_CONTROL
 		for (i = 0; i < fan_get_count(); i++) {

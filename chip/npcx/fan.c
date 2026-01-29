@@ -28,6 +28,12 @@
 #define CPRINTS(format, args...) cprints(CC_PWM, format, ## args)
 #endif
 
+#ifdef BOARD_PUFF
+#define FAN_STALL_SPEED 10
+#else
+#define FAN_STALL_SPEED 1
+#endif
+
 /* Tacho measurement state */
 enum tacho_measure_state {
 	/* Tacho normal state */
@@ -266,9 +272,9 @@ static void fan_adjust_duty(int ch, int rpm_diff, int duty)
 
 	/* Adjust fan duty step by step */
 	if (rpm_diff > 0)
-		duty = MIN(duty + duty_step, 100);
+		duty = MAX(MIN(duty + duty_step, 100), FAN_STALL_SPEED);
 	else
-		duty = MAX(duty - duty_step, 1);
+		duty = MAX(duty - duty_step, FAN_STALL_SPEED);
 
 	fan_set_duty(ch, duty);
 
@@ -483,8 +489,16 @@ int fan_get_rpm_target(int ch)
 void fan_set_rpm_target(int ch, int rpm)
 {
 	if (rpm == 0) {
-		/* If rpm = 0, disable PWM immediately. Why?*/
+		/* If rpm = 0, disable PWM immediately. */
 		fan_set_duty(ch, 0);
+		/*
+		 * When the fan is commanded to stop, its RPM should be treated
+		 * as zero immediately. Otherwise, the control loop can see a
+		 * stale/misleading RPM value and then fail to apply a large enough
+		 * duty cycle to actually get it moving, leading to a stall.
+		 */
+		fan_status[ch].rpm_actual = 0;
+		rpm_pre[ch] = 0;
 	} else {
 		/* This is the counterpart of disabling PWM above. */
 		if (!fan_get_enabled(ch))

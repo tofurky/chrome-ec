@@ -1717,6 +1717,8 @@ static int sysinfo(struct ec_response_sysinfo *info)
 	return 0;
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
 int cmd_sysinfo(int argc, char **argv)
 {
 	struct ec_response_sysinfo r;
@@ -1770,6 +1772,7 @@ sysinfo_error_usage:
 		argv[0]);
 	return -1;
 }
+#pragma GCC diagnostic pop
 
 int cmd_rollback_info(int argc, char *argv[])
 {

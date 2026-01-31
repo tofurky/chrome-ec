@@ -102,6 +102,8 @@ static int splice_into_path(char *result, const char *path, int resultsz,
  *		In case of bin, save optional parameters given by user
  *----------------------------------------------------------------------
  */
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Waddress"
 int main(int argc, char *argv[])
 
 {
@@ -849,6 +851,7 @@ int main(int argc, char *argv[])
 	}
 
 }
+#pragma GCC diagnostic pop
 
 /*
  *-----------------------------------------------------------------------

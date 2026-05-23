@@ -64,7 +64,8 @@ static unsigned int finalize_crc_32(unsigned int crc);
  */
 static int splice_into_path(char *result, const char *path, int resultsz,
 	const char *prefix) {
-	char *last_delim, *result_last_delim;
+	const char *last_delim;
+	char *result_last_delim;
 
 	if (strlen(path) + strlen(prefix) + 1 > resultsz) {
 		my_printf(TERR,
@@ -102,6 +103,8 @@ static int splice_into_path(char *result, const char *path, int resultsz,
  *		In case of bin, save optional parameters given by user
  *----------------------------------------------------------------------
  */
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Waddress"
 int main(int argc, char *argv[])
 
 {
@@ -849,6 +852,7 @@ int main(int argc, char *argv[])
 	}
 
 }
+#pragma GCC diagnostic pop
 
 /*
  *-----------------------------------------------------------------------

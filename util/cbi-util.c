@@ -219,7 +219,7 @@ static int parse_integer_field(const char *arg, struct integer_field *f)
 {
 	uint64_t val;
 	char *e;
-	char *ch;
+	const char *ch;
 
 	val = strtoul(arg, &e, 0);
 	if (val > UINT32_MAX || !*arg || (e && *e && *e != ':')) {
